@@ -1,0 +1,26 @@
+name: Atualizar dados das ações
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"   # toda segunda, 9h UTC. Mensal: "0 9 1 * *"
+  workflow_dispatch:       # botão "Run workflow" para rodar na hora
+
+permissions:
+  contents: write
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install yfinance pandas
+      - run: python atualizar.py
+      - name: Salvar se mudou
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add data/acoes.csv
+          git diff --cached --quiet || (git commit -m "Atualiza dados" && git push)
